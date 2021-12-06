@@ -1,0 +1,90 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+using Microsoft.Extensions.Logging;
+<#
+    var methodNames = new[]
+    {
+        "LogInformation",
+        "LogTrace",
+        "LogDebug",
+        "LogWarning",
+        "LogError",
+        "LogCritical",
+    };
+    
+    var map = new Dictionary<Variations, string>
+    {
+        { Variations.EventId, "EventId eventId" },
+        { Variations.Exception, "Exception exception" },
+        { Variations.Args, "params object[] args" },
+        { Variations.Message, "string message" }
+    };
+#>
+
+namespace su3dev.Logging.Moq
+{
+    public abstract partial class Logger
+    {
+<#
+    const int startValue = (int) Variations.Message;
+    const int endValue = (int) (Variations.EventId |
+                                Variations.Exception |
+                                Variations.Message |
+                                Variations.Args);
+
+    foreach (var methodName in methodNames)
+    {
+        var parameterSets = new List<string>();
+        for (var i = startValue; i <= endValue; ++i)
+        {
+            var parameters = new List<string>();
+
+            if (Enum.TryParse(i.ToString(), out Variations variation))
+            {
+                if (variation.HasFlag(Variations.EventId))
+                {
+                    parameters.Add(map[Variations.EventId]);
+                }
+                if (variation.HasFlag(Variations.Exception))
+                {
+                    parameters.Add(map[Variations.Exception]);
+                }
+                if (variation.HasFlag(Variations.Message))
+                {
+                    parameters.Add(map[Variations.Message]);
+                }
+                if (variation.HasFlag(Variations.Args))
+                {
+                    parameters.Add(map[Variations.Args]);
+                }
+            }
+
+            if (parameters.Count > 0)
+            {
+                var parameterSet = string.Join(", ", parameters);
+                parameterSets.Add(parameterSet);
+            }
+        }
+        
+        foreach(var parameterSet in parameterSets)
+        {
+#>
+        public abstract void <#= methodName #>(<#= parameterSet #>);
+<#
+        }
+    }
+#>
+    }
+}
+
+<#+
+    [Flags]
+    public enum Variations
+    {
+        EventId = 1,
+        Exception = 2,
+        Args = 4,
+        Message = 8
+    }
+#>

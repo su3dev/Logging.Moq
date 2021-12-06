@@ -25,4 +25,17 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Logger.Generated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Logger.Generated.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Logger.Generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Logger.Generated.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
