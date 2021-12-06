@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-// ReSharper disable CheckNamespace
 
-namespace Moq
+namespace su3dev.Logging.Moq
 {
     public record LoggedMessage
     {

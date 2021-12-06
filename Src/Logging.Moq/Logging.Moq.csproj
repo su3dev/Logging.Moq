@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moq.ILogger</RootNamespace>
-    <AssemblyName>Moq.ILogger</AssemblyName>
+    <RootNamespace>Logging.Moq</RootNamespace>
+    <AssemblyName>su3dev.Logging.Moq</AssemblyName>
     <Nullable>enable</Nullable>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>

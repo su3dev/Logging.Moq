@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-// ReSharper disable CheckNamespace
+using Moq;
 
-namespace Moq
+namespace su3dev.Logging.Moq
 {
     public class LoggerInterceptor
     {

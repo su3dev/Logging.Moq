@@ -29,6 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Moq.ILogger\Moq.ILogger.csproj" />
+    <ProjectReference Include="..\Logging.Moq\Logging.Moq.csproj" />
   </ItemGroup>
 </Project>

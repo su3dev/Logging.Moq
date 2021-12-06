@@ -2,17 +2,17 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
-// ReSharper disable CheckNamespace
 
-namespace Moq.Tests
+namespace su3dev.Logging.Moq.Tests
 {
-    public class LoggerInterceptorFixture
+    public class LoggerInterceptorTests
     {
         private Mock<ILogger> LoggerMock { get; }
         private ILogger Logger => LoggerMock.Object;
 
-        public LoggerInterceptorFixture()
+        public LoggerInterceptorTests()
         {
             LoggerMock = new Mock<ILogger>();
         }

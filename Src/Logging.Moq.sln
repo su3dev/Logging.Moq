@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.810.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.ILogger", "Moq.ILogger\Moq.ILogger.csproj", "{9AD03F9D-3D92-4312-8B59-D23A1EAF8D8D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.Moq", "Logging.Moq\Logging.Moq.csproj", "{9AD03F9D-3D92-4312-8B59-D23A1EAF8D8D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{983DC208-7E9B-40A7-B979-A8699E2D26E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.ILogger.Tests", "Moq.ILogger.Tests\Moq.ILogger.Tests.csproj", "{024A928A-C0F7-4187-8010-31607344DB2D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.Moq.Tests", "Logging.Moq.Tests\Logging.Moq.Tests.csproj", "{024A928A-C0F7-4187-8010-31607344DB2D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{87A6D9BA-130B-4BE8-9529-7641B3ADFBF7}"
 	ProjectSection(SolutionItems) = preProject
