@@ -85,7 +85,7 @@ namespace su3dev.Logging.Moq
             return methodInfo?.Invoke(Target, parameters);
         }
         
-        private static List<KeyValuePair<string, object>> ExtractStatePairs<TState>(TState state)
+        private static KeyValuePair<string, object>[] ExtractStatePairs<TState>(TState state)
         {
             var pairs = new List<KeyValuePair<string, object>>();
             if (state is IEnumerable stateAsEnumerable)
@@ -99,7 +99,7 @@ namespace su3dev.Logging.Moq
                 }
             }
 
-            return pairs;
+            return pairs.ToArray();
         }
 
         private static string GetOriginalFormat(IEnumerable<KeyValuePair<string, object>> statePairs)

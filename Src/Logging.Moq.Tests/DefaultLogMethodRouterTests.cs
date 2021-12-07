@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -46,6 +47,16 @@ namespace su3dev.Logging.Moq.Tests
             actual.Should().Be(expectedMethodName);
         }
 
+        [Fact]
+        public void GetLogMethodParameters_ReturnsObjectArray()
+        {
+            var sut = GetTestableSubject();
+
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object), new[] { new EventId(0), new object(), null });
+
+            actual.Should().BeAssignableTo<object[]>();
+        }
+        
         [Theory]
         //          event id, should contain it
         [InlineData(       1,              true)]
@@ -57,16 +68,8 @@ namespace su3dev.Logging.Moq.Tests
             var eventIdInstance = new EventId(eventId);
             var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object), new[] { eventIdInstance, new object(), null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
-            if (shouldContainEventId)
-            {
-                actualArray.Should().Contain(eventIdInstance);
-            }
-            else
-            {
-                actualArray.Should().NotContain(eventIdInstance);
-            }
+            actualArray!.Contains(eventIdInstance).Should().Be(shouldContainEventId);
         }
 
         [Theory]
@@ -81,16 +84,8 @@ namespace su3dev.Logging.Moq.Tests
             var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object),
                 new[] { new EventId(0), new object(), addException ? exception : null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
-            if (shouldContainException)
-            {
-                actualArray.Should().Contain(exception!);
-            }
-            else
-            {
-                actualArray.Should().NotContain(exception!);
-            }
+            actualArray!.Contains(exception).Should().Be(shouldContainException);
         }
 
         [Fact]
@@ -101,7 +96,6 @@ namespace su3dev.Logging.Moq.Tests
             var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object),
                 new[] { new EventId(0), new object(), null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
             actualArray.Should().Contain(Logger.NullOriginalFormatValue);
         }
@@ -115,7 +109,6 @@ namespace su3dev.Logging.Moq.Tests
             var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
                 new object?[] { new EventId(0), state, null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
             actualArray.Should().Contain(Logger.NullOriginalFormatValue);
         }
@@ -129,7 +122,6 @@ namespace su3dev.Logging.Moq.Tests
             var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
                 new object?[] { new EventId(0), state, null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
             actualArray.Should().Contain(Logger.NullOriginalFormatValue);
         }
@@ -144,11 +136,92 @@ namespace su3dev.Logging.Moq.Tests
             var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
                 new object?[] { new EventId(0), state, null });
 
-            actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
             actualArray.Should().Contain(expectedOriginalFormatValue);
         }
 
+        [Theory]
+        //          add args, should contain it
+        [InlineData(    true,              true)]
+        [InlineData(   false,             false)]
+        public void GetLogMethodParameters_AddsArgs_OnlyWhenItIsNotEmpty(bool addArgs, bool shouldContainArgs)
+        {
+            var sut = GetTestableSubject();
+
+            const string arg1Key = "arg-1-key";
+            const string arg1Value = "arg-1-value";
+            var state = new List<KeyValuePair<string, object>>();
+            if (addArgs)
+            {
+                state.Add(new KeyValuePair<string, object>(arg1Key, arg1Value));
+            }
+            var parameters = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { new EventId(0), state, null });
+
+            var parametersAsArray = parameters as object[];
+            var argsElement = parametersAsArray!.Where(e => e.GetType() == typeof(object[])).ToList();
+            argsElement.Any().Should().Be(shouldContainArgs);
+        }
+
+        [Fact]
+        public void GetLogMethodParameters_AddsArgs_ButSkipsOriginalFormat()
+        {
+            var sut = GetTestableSubject();
+
+            const string arg1Key = "arg-1-key";
+            const string arg1Value = "arg-1-value";
+            const string arg2Key = "arg-2-key";
+            const string arg2Value = "arg-2-value";
+            const string originalFormat = "some-text";
+            var state = new List<KeyValuePair<string, object>>
+            {
+                new(Logger.OriginalFormatKey, originalFormat),
+                new(arg1Key, arg1Value),
+                new(arg2Key, arg2Value)
+            };
+            
+            var parameters = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { new EventId(0), state, null });
+
+            var parametersAsArray = parameters as object[];
+            // the resulting array contains a sub-array with the args
+            var args = parametersAsArray!.FirstOrDefault(e => e.GetType() == typeof(object[])).As<object[]>();
+            args.Should().Contain(arg1Value, arg2Value);
+            args.Should().NotContain(originalFormat);
+        }
+       
+        [Fact]
+        public void GetLogMethodParameters_AddsArgs_InTheCorrectOrder()
+        {
+            var sut = GetTestableSubject();
+
+            var eventId = new EventId(10);
+            
+            const string arg1Key = "arg-1-key";
+            const string arg1Value = "arg-1-value";
+            const string originalFormat = "some-text";
+            var state = new List<KeyValuePair<string, object>>
+            {
+                new(Logger.OriginalFormatKey, originalFormat),
+                new(arg1Key, arg1Value),
+            };
+
+            var exception = new UnitTestForcedException();
+            
+            var parameters = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { eventId, state, exception });
+
+            var parametersAsArray = parameters as object[];
+            parametersAsArray.Should().BeEquivalentTo(new object[]
+                {
+                    eventId,
+                    exception,
+                    originalFormat,
+                    new[] { arg1Value }
+                }, options => options.WithStrictOrdering()
+            );
+        }
+        
         private static Mock<DefaultLogMethodRouter> GetTestableSubject()
         {
             var testableSut = GetTestableSubject(out _);
