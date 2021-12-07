@@ -8,8 +8,6 @@ namespace su3dev.Logging.Moq
 {
     public class DefaultLogMethodRouter : ILogMethodRouter
     {
-        private const string OriginalFormatKey = "{OriginalFormat}";
-        
         public object Target { get; }
 
         public DefaultLogMethodRouter(object target)
@@ -107,17 +105,17 @@ namespace su3dev.Logging.Moq
         private static string GetOriginalFormat(IEnumerable<KeyValuePair<string, object>> statePairs)
         {
             var originalFormatPair = statePairs
-                .FirstOrDefault(kvp => kvp.Key == OriginalFormatKey); 
+                .FirstOrDefault(kvp => kvp.Key == Logger.OriginalFormatKey); 
             var originalFormat = originalFormatPair
                 .Value?
-                .ToString() ?? "[null]";
+                .ToString() ?? Logger.NullOriginalFormatValue;
             return originalFormat;
         }
 
         private static object[] AssembleArgs(IEnumerable<KeyValuePair<string, object>> statePairs)
         {
             var args = statePairs
-                .Where(kvp => kvp.Key != OriginalFormatKey)
+                .Where(kvp => kvp.Key != Logger.OriginalFormatKey)
                 .Select(kvp => kvp.Value)
                 .ToArray();
             return args;

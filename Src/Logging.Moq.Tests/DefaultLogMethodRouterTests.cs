@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -12,8 +13,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void Ctor_SetsTarget()
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sut = new DefaultLogMethodRouter(targetMock.Object);
+            var sut = GetTestableSubject(out var targetMock).Object;
 
             sut.Target.Should().Be(targetMock.Object);
         }
@@ -21,10 +21,9 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void InvokeLogMethod_CallsTarget()
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sutMock = new Mock<DefaultLogMethodRouter>(targetMock.Object) { CallBase = true };
+            var sut = GetTestableSubject(out var targetMock);
 
-            _ = InvokeProtected(sutMock, "InvokeLogMethod",
+            _ = InvokeProtected(sut, "InvokeLogMethod",
                 new object[] { "SomeMethod", new object[] { "someValue" } });
             
             targetMock.Verify(m => m.SomeMethod("someValue"), Times.Once);
@@ -40,10 +39,9 @@ namespace su3dev.Logging.Moq.Tests
         [InlineData(LogLevel.None, "")]
         public void GetLogMethodName_ReturnsCorrectLogMethodName(LogLevel logLevel, string expectedMethodName)
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sutMock = new Mock<DefaultLogMethodRouter>(targetMock.Object) { CallBase = true };
+            var sut = GetTestableSubject();
 
-            var actual = InvokeProtected(sutMock, "GetLogMethodName", new object[] { logLevel });
+            var actual = InvokeProtected(sut, "GetLogMethodName", new object[] { logLevel });
 
             actual.Should().Be(expectedMethodName);
         }
@@ -54,11 +52,10 @@ namespace su3dev.Logging.Moq.Tests
         [InlineData(       0,             false)]
         public void GetLogMethodParameters_AddsEventId_OnlyWhenEventIdIsNotDefault(int eventId, bool shouldContainEventId)
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sutMock = new Mock<DefaultLogMethodRouter>(targetMock.Object) { CallBase = true };
+            var sut = GetTestableSubject();
 
             var eventIdInstance = new EventId(eventId);
-            var actual = InvokeProtected(sutMock, "GetLogMethodParameters", typeof(object), new[] { eventIdInstance, new object(), null });
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object), new[] { eventIdInstance, new object(), null });
 
             actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
@@ -78,11 +75,10 @@ namespace su3dev.Logging.Moq.Tests
         [InlineData(        false,             false)]
         public void GetLogMethodParameters_AddsException_OnlyWhenExceptionIsNotNull(bool addException, bool shouldContainException)
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sutMock = new Mock<DefaultLogMethodRouter>(targetMock.Object) { CallBase = true };
+            var sut = GetTestableSubject();
 
             var exception = new UnitTestForcedException();
-            var actual = InvokeProtected(sutMock, "GetLogMethodParameters", typeof(object),
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object),
                 new[] { new EventId(0), new object(), addException ? exception : null });
 
             actual.Should().BeAssignableTo<object[]>();
@@ -98,17 +94,72 @@ namespace su3dev.Logging.Moq.Tests
         }
 
         [Fact]
-        public void GetLogMethodParameters_AddsStringWithNullText_WhenStateIsNotOfTheCorrectType()
+        public void GetLogMethodParameters_AddsStringWithNullText_WhenStateIsNotIEnumerable()
         {
-            var targetMock = new Mock<TargetSpy>();
-            var sutMock = new Mock<DefaultLogMethodRouter>(targetMock.Object) { CallBase = true };
+            var sut = GetTestableSubject();
 
-            var actual = InvokeProtected(sutMock, "GetLogMethodParameters", typeof(object),
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", typeof(object),
                 new[] { new EventId(0), new object(), null });
 
             actual.Should().BeAssignableTo<object[]>();
             var actualArray = actual as object[];
-            actualArray.Should().Contain("[null]");
+            actualArray.Should().Contain(Logger.NullOriginalFormatValue);
+        }
+
+        [Fact]
+        public void GetLogMethodParameters_AddsStringWithNullText_WhenStateIsNotAnIEnumerableOfKeyValuePairs()
+        {
+            var sut = GetTestableSubject();
+
+            var state = new List<string> { "one", "two" };
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { new EventId(0), state, null });
+
+            actual.Should().BeAssignableTo<object[]>();
+            var actualArray = actual as object[];
+            actualArray.Should().Contain(Logger.NullOriginalFormatValue);
+        }
+
+        [Fact]
+        public void GetLogMethodParameters_AddsStringWithNullText_WhenStateDoesNotHaveAnOriginalFormatPair()
+        {
+            var sut = GetTestableSubject();
+
+            var state = new List<KeyValuePair<string, object>> { new("one", "two") };
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { new EventId(0), state, null });
+
+            actual.Should().BeAssignableTo<object[]>();
+            var actualArray = actual as object[];
+            actualArray.Should().Contain(Logger.NullOriginalFormatValue);
+        }
+
+        [Fact]
+        public void GetLogMethodParameters_AddsStringWithOriginalFormat()
+        {
+            var sut = GetTestableSubject();
+
+            var expectedOriginalFormatValue = "some text";
+            var state = new List<KeyValuePair<string, object>> { new(Logger.OriginalFormatKey, expectedOriginalFormatValue) };
+            var actual = InvokeProtected(sut, "GetLogMethodParameters", state.GetType(),
+                new object?[] { new EventId(0), state, null });
+
+            actual.Should().BeAssignableTo<object[]>();
+            var actualArray = actual as object[];
+            actualArray.Should().Contain(expectedOriginalFormatValue);
+        }
+
+        private static Mock<DefaultLogMethodRouter> GetTestableSubject()
+        {
+            var testableSut = GetTestableSubject(out _);
+            return testableSut;
+        }
+
+        private static Mock<DefaultLogMethodRouter> GetTestableSubject(out Mock<TargetSpy> targetSpy)
+        {
+            targetSpy = new Mock<TargetSpy>();
+            var testableSut = new Mock<DefaultLogMethodRouter>(targetSpy.Object) { CallBase = true };
+            return testableSut;
         }
         
         private static object? InvokeProtected(IMock<DefaultLogMethodRouter> sutMock, string methodName, object?[] parameters)

@@ -5,6 +5,9 @@ namespace su3dev.Logging.Moq
 {
     public abstract partial class Logger : ILogger
     {
+        public const string OriginalFormatKey = "{OriginalFormat}";
+        public const string NullOriginalFormatValue = "[null]";
+        
         public abstract IDisposable BeginScope<TState>(TState state);
         public abstract bool IsEnabled(LogLevel logLevel);
         
