@@ -5,6 +5,7 @@ using System.Reflection;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq.Protected;
 using Xunit;
 
 namespace su3dev.Logging.Moq.Tests
@@ -220,6 +221,51 @@ namespace su3dev.Logging.Moq.Tests
                     new[] { arg1Value }
                 }, options => options.WithStrictOrdering()
             );
+        }
+
+        [Fact]
+        public void RouteCall_DoesNotInvokeLogMethod_WhenLogLevelIsNotRecognized()
+        {
+            var sutMock = GetTestableSubject();
+            var sut = sutMock.Object;
+
+            sut.RouteCall<object>(LogLevel.None, new EventId(0), new object(), null);
+            
+            sutMock.Protected().Verify("InvokeLogMethod", Times.Never(), ItExpr.IsAny<string>(), ItExpr.IsAny<object[]>());
+        }
+
+        [Theory]
+        [InlineData(LogLevel.Critical)]
+        [InlineData(LogLevel.Debug)]
+        [InlineData(LogLevel.Error)]
+        [InlineData(LogLevel.Information)]
+        [InlineData(LogLevel.Trace)]
+        [InlineData(LogLevel.Warning)]
+        public void RouteCall_CallsGetLogMethodName_WithLogLevel(LogLevel logLevel)
+        {
+            var sutMock = GetTestableSubject();
+            var sut = sutMock.Object;
+
+            sut.RouteCall<object>(logLevel, new EventId(0), new object(), null);
+            
+            sutMock.Protected().Verify("GetLogMethodName", Times.Once(), logLevel);
+        }
+
+        [Theory]
+        [InlineData(LogLevel.Critical, "LogCritical")]
+        [InlineData(LogLevel.Debug, "LogDebug")]
+        [InlineData(LogLevel.Error, "LogError")]
+        [InlineData(LogLevel.Information, "LogInformation")]
+        [InlineData(LogLevel.Trace, "LogTrace")]
+        [InlineData(LogLevel.Warning, "LogWarning")]
+        public void RouteCall_CallsInvokeLogMethod_WithTheCorrectName(LogLevel logLevel, string logMethodName)
+        {
+            var sutMock = GetTestableSubject();
+            var sut = sutMock.Object;
+
+            sut.RouteCall<object>(logLevel, new EventId(0), new object(), null);
+            
+            sutMock.Protected().Verify("InvokeLogMethod", Times.Once(), logMethodName, ItExpr.IsAny<object[]>());
         }
         
         private static Mock<DefaultLogMethodRouter> GetTestableSubject()

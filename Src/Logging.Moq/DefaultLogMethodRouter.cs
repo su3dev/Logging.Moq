@@ -45,14 +45,14 @@ namespace su3dev.Logging.Moq
 
         protected virtual object[] GetLogMethodParameters<TState>(EventId eventId, TState state, Exception? exception)
         {
-            var statePairs = ExtractStatePairs(state);
+            var statePairs = ExtractStatePairs(state).ToArray();
             var originalFormat = GetOriginalFormat(statePairs);
-            var args = AssembleArgs(statePairs);
+            var args = AssembleArgs(statePairs).ToArray();
 
             // NOTE: The element order in the parameter array is significant and must be as follows:
             // { eventId, exception, originalFormat, args }
-            // In order to correctly select the simplest log method overload, certain elements are
-            // not added when they have the following special values:
+            // In order to select the simplest log method overload, the following element
+            // types will not be added if they have certain special values:
             // - event id, if the id is 0
             // - exception, if it is null
             // - args, if it is empty
@@ -85,21 +85,23 @@ namespace su3dev.Logging.Moq
             return methodInfo?.Invoke(Target, parameters);
         }
         
-        private static KeyValuePair<string, object>[] ExtractStatePairs<TState>(TState state)
+        private static IEnumerable<KeyValuePair<string, object>> ExtractStatePairs<TState>(TState state)
         {
             var pairs = new List<KeyValuePair<string, object>>();
-            if (state is IEnumerable stateAsEnumerable)
+            if (state is not IEnumerable stateAsEnumerable)
             {
-                foreach (var item in stateAsEnumerable)
+                return pairs;
+            }
+
+            foreach (var item in stateAsEnumerable)
+            {
+                if (item is KeyValuePair<string, object> pair)
                 {
-                    if (item is KeyValuePair<string, object> pair)
-                    {
-                        pairs.Add(pair);
-                    }
+                    pairs.Add(pair);
                 }
             }
 
-            return pairs.ToArray();
+            return pairs;
         }
 
         private static string GetOriginalFormat(IEnumerable<KeyValuePair<string, object>> statePairs)
@@ -112,12 +114,11 @@ namespace su3dev.Logging.Moq
             return originalFormat;
         }
 
-        private static object[] AssembleArgs(IEnumerable<KeyValuePair<string, object>> statePairs)
+        private static IEnumerable<object> AssembleArgs(IEnumerable<KeyValuePair<string, object>> statePairs)
         {
             var args = statePairs
                 .Where(kvp => kvp.Key != Logger.OriginalFormatKey)
-                .Select(kvp => kvp.Value)
-                .ToArray();
+                .Select(kvp => kvp.Value);
             return args;
         }
     }
