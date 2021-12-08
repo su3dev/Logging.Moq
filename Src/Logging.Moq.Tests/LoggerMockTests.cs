@@ -1,5 +1,4 @@
 ﻿using System;
-using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -68,7 +67,7 @@ namespace su3dev.Logging.Moq.Tests
             var expected = Mock.Get(logger);
             actual.Should().Be(expected);
         }
-        
+
         public class LoggerCategory
         { }
     }

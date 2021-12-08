@@ -13,7 +13,7 @@ namespace su3dev.Logging.Moq
         
         public ILogMethodRouter LogMethodRouter { get; set; }
 
-        public Logger()
+        protected Logger()
         {
             LogMethodRouter = new DefaultLogMethodRouter(this);
         }

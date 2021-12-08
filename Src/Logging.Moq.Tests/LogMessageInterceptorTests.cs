@@ -7,12 +7,12 @@ using Xunit;
 
 namespace su3dev.Logging.Moq.Tests
 {
-    public class LoggerInterceptorTests
+    public class LogMessageInterceptorTests
     {
         private Mock<ILogger> LoggerMock { get; }
         private ILogger Logger => LoggerMock.Object;
 
-        public LoggerInterceptorTests()
+        public LogMessageInterceptorTests()
         {
             LoggerMock = new Mock<ILogger>();
         }
@@ -20,7 +20,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogInformation_CapturesLevelAndText()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             Logger.LogInformation(expectedText);
@@ -34,7 +34,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogWarning_CapturesLevelAndText()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             Logger.LogWarning(expectedText);
@@ -48,7 +48,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogWarning_CapturesExceptionIfProvided()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             var expectedException = new Fixture().Create<Exception>();
@@ -63,7 +63,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogError_CapturesLevelAndText()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             Logger.LogError(expectedText);
@@ -77,7 +77,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogError_CapturesExceptionIfProvided()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             var expectedException = new Fixture().Create<Exception>();
@@ -92,7 +92,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogCritical_CapturesLevelAndText()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             Logger.LogCritical(expectedText);
@@ -106,7 +106,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogCritical_CapturesExceptionIfProvided()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             var expectedException = new Fixture().Create<Exception>();
@@ -121,7 +121,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogDebug_CapturesLevelAndText()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             Logger.LogDebug(expectedText);
@@ -135,7 +135,7 @@ namespace su3dev.Logging.Moq.Tests
         [Fact]
         public void LogDebug_CapturesExceptionIfProvided()
         {
-            var sut = LoggerInterceptor.Create(LoggerMock);
+            var sut = LogMessageInterceptor.Create(LoggerMock);
 
             const string expectedText = "some-text";
             var expectedException = new Fixture().Create<Exception>();
@@ -153,7 +153,7 @@ namespace su3dev.Logging.Moq.Tests
             var loggerMock = new Mock<ILogger>();
             var logger = loggerMock.Object;
 
-            var sut = LoggerInterceptor.Create(loggerMock);
+            var sut = LogMessageInterceptor.Create(loggerMock);
 
             logger.LogInformation("message-1");
             logger.LogInformation("message-2");

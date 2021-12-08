@@ -5,16 +5,16 @@ using Moq;
 
 namespace su3dev.Logging.Moq
 {
-    public class LoggerInterceptor
+    public class LogMessageInterceptor
     {
         public IEnumerable<LoggedMessage> LoggedMessages { get { return LoggedMessagesInternal.AsReadOnly(); } }
 
         private List<LoggedMessage> LoggedMessagesInternal { get; }
 
-        public static LoggerInterceptor Create<TLogger>(Mock<TLogger> mock)
+        public static LogMessageInterceptor Create<TLogger>(Mock<TLogger> mock)
             where TLogger : class, ILogger
         {
-            var interceptor = new LoggerInterceptor();
+            var interceptor = new LogMessageInterceptor();
 
             mock
                 .Setup(
@@ -39,7 +39,7 @@ namespace su3dev.Logging.Moq
             LoggedMessagesInternal.Add(message);
         }
 
-        private LoggerInterceptor()
+        private LogMessageInterceptor()
         {
             LoggedMessagesInternal = new List<LoggedMessage>();
         }
