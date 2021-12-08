@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -266,6 +267,31 @@ namespace su3dev.Logging.Moq.Tests
             sut.RouteCall<object>(logLevel, new EventId(0), new object(), null);
             
             sutMock.Protected().Verify("InvokeLogMethod", Times.Once(), logMethodName, ItExpr.IsAny<object[]>());
+        }
+
+        [Theory]
+        [InlineData(10, 3, typeof(Exception))]
+        [InlineData(20, 5, typeof(InvalidOperationException))]
+        [InlineData(30, 2, typeof(UnitTestForcedException))]
+        public void RouteCall_CallsGetLogMethodParameters_WithTheExpectedParameters(int eventIdValue, int stateCount, Type exceptionType)
+        {
+            var sutMock = GetTestableSubject();
+            var sut = sutMock.Object;
+
+            var eventId = new EventId(eventIdValue);
+            var state = new List<KeyValuePair<string, object>>();
+            foreach (var idx in Enumerable.Range(1, stateCount))
+            {
+                state.Add(new($"key{idx}", Guid.NewGuid()));
+            }
+            var exception = Activator.CreateInstance(exceptionType) as Exception;
+
+            sut.RouteCall(LogLevel.Information, eventId, state, exception);
+            
+            sutMock.Protected().Verify<object[]>("GetLogMethodParameters",
+                new[]{ state.GetType() },
+                Times.Once(),
+                eventId, state, exception);
         }
         
         private static Mock<DefaultLogMethodRouter> GetTestableSubject()
