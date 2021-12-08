@@ -15,8 +15,8 @@ namespace su3dev.Logging.Moq
         public static Mock<Logger<T>> Create<T>()
             where T : class
         {
-            var extendedMock = new Mock<Logger<T>> { CallBase = true };
-            return extendedMock;
+            var mock = new Mock<Logger<T>> { CallBase = true };
+            return mock;
         }
 
         public static Mock<Logger<T>> Get<T>(ILogger<T> logger)
