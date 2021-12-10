@@ -23,7 +23,31 @@ namespace su3dev.Logging.Moq.Tests
 
             actual.Should().NotBeNull();
         }
-
+        
+        [Fact]
+        public void Of_WithILogger_ReturnsNonNull()
+        {
+            var actual = LoggerMock.Of<ILogger>();
+            var actual2 = LoggerMock.Of<ILogger<LoggerCategory>>();
+            var actual3 = LoggerMock.Get(actual2);
+            
+            actual.Should().NotBeNull();
+        }
+        
+        [Fact]
+        public void Of_WithILoggerOfT_ReturnsNonNull()
+        {
+            var actual = LoggerMock.Of<ILogger<LoggerCategory>>();
+            
+            actual.Should().NotBeNull();
+        }
+        
+        [Fact]
+        public void Of_WithUnsupportedType_Throws()
+        {
+            Assert.Throws<ArgumentException>(() => LoggerMock.Of<ILoggerDerived>());
+        }
+        
         [Fact]
         public void Get_WithInvalidLogger_Throws()
         {
@@ -69,6 +93,9 @@ namespace su3dev.Logging.Moq.Tests
         }
 
         public class LoggerCategory
+        { }
+        
+        public interface ILoggerDerived : ILogger
         { }
     }
 }
